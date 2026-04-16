@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 80" width="260" height="80" role="img">
+  <title>coronin</title>
+  <desc>coronin wordmark — Outfit SemiBold, lowercase</desc>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600&amp;display=swap');
+    </style>
+  </defs>
+  <text x="10" y="62"
+    font-family="'Outfit', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif"
+    font-size="64"
+    font-weight="600"
+    letter-spacing="-1"
+    fill="#111111">coronin</text>
+</svg>

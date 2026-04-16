@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>coronin</title>
+  <meta name="description" content="Physical AI for skilled trades."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=DM+Mono:wght@300&display=swap" rel="stylesheet"/>
+
+  <!-- Three.js r160 via ES module importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #000; color: #fff; font-family: 'Outfit', sans-serif; overflow: hidden; }
+
+    .layout { display: grid; grid-template-columns: 58% 42%; height: 100vh; }
+
+    .left { position: relative; overflow: hidden; }
+    .big-word {
+      position: absolute; left: 48px; bottom: 72px; z-index: 1;
+      font-family: 'Outfit', sans-serif; font-weight: 700;
+      font-size: clamp(80px, 12vw, 160px);
+      letter-spacing: -4px; line-height: 0.9;
+      color: #fff; pointer-events: none; user-select: none;
+    }
+    #three-canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; display: block;
+    }
+    #load-msg {
+      position: absolute; bottom: 50%; left: 50%;
+      transform: translate(-50%, 50%);
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255,255,255,0.18); pointer-events: none; z-index: 3;
+    }
+
+    .right {
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 64px 56px 64px 40px;
+      border-left: 1px solid rgba(255,255,255,0.07);
+      position: relative; z-index: 10;
+    }
+    .logo {
+      font-family: 'Outfit', sans-serif; font-weight: 600;
+      font-size: 22px; letter-spacing: -0.5px;
+      color: #fff; text-decoration: none;
+      margin-bottom: 56px; display: block;
+    }
+    .slogan {
+      font-family: 'Outfit', sans-serif; font-weight: 600;
+      font-size: clamp(26px, 2.6vw, 38px); letter-spacing: -0.5px;
+      line-height: 1.15; color: #fff; margin-bottom: 20px;
+    }
+    .hook {
+      font-family: 'Outfit', sans-serif; font-weight: 300;
+      font-size: 17px; line-height: 1.75;
+      color: rgba(255,255,255,0.65); margin-bottom: 8px; max-width: 340px;
+    }
+    .launch-note {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 13px; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.38); margin-bottom: 48px;
+    }
+    .form-block { display: flex; flex-direction: column; max-width: 360px; margin-bottom: 48px; }
+    .field-label {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.38); margin-bottom: 10px;
+    }
+    .input-row { display: flex; gap: 10px; }
+    .email-input {
+      flex: 1; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2); outline: none;
+      padding: 15px 18px;
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 14px; color: #fff; transition: border-color 0.2s;
+    }
+    .email-input::placeholder { color: rgba(255,255,255,0.3); }
+    .email-input:focus { border-color: rgba(255,255,255,0.5); }
+    .notify-btn {
+      background: #fff; color: #000; border: 1px solid #fff;
+      padding: 15px 24px;
+      font-family: 'Outfit', sans-serif; font-weight: 700;
+      font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+      transition: background 0.2s, color 0.2s;
+    }
+    .notify-btn:hover { background: transparent; color: #fff; }
+    .contact {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 13px; letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.38); text-decoration: none; transition: color 0.2s;
+    }
+    .contact:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <div class="left">
+    <div class="big-word">coronin</div>
+    <canvas id="three-canvas"></canvas>
+    <p id="load-msg">Loading...</p>
+  </div>
+
+  <div class="right">
+    <a class="logo" href="/">coronin</a>
+    <h1 class="slogan">Physical AI<br/>for skilled trades</h1>
+    <p class="hook">The first platform built for the people who fix the world.</p>
+    <p class="launch-note">Launching soon — be among the first to know.</p>
+    <div class="form-block" id="form-block">
+      <p class="field-label">Your email</p>
+      <div class="input-row">
+        <input class="email-input" id="email-input" type="email" placeholder="name@company.com"/>
+        <button class="notify-btn" type="button" id="notify-btn">Notify Me</button>
+      </div>
+    </div>
+    <a class="contact" href="mailto:hello@coronin.ai">hello@coronin.ai</a>
+  </div>
+</div>
+
+<!-- Form handler (no module needed) -->
+<script>
+document.getElementById('notify-btn').addEventListener('click', () => {
+  const email = document.getElementById('email-input').value;
+  if (!email || !email.includes('@')) return;
+  fetch('https://formspree.io/f/YOUR_FORM_ID', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+  }).then(r => {
+    if (r.ok) document.getElementById('form-block').innerHTML =
+      '<p style="font-family:DM Mono,monospace;font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:0.08em;">✓ You\'re on the list.</p>';
+  }).catch(() => {});
+});
+</script>
+
+<!-- Three.js glass wrench -->
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const loadMsg  = document.getElementById('load-msg');
+const canvas   = document.getElementById('three-canvas');
+const panel    = canvas.parentElement;
+
+// ── RENDERER ──────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: true,
+  powerPreference: 'high-performance',
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping         = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.6;
+renderer.outputColorSpace    = THREE.SRGBColorSpace;
+
+// ── CAMERA & SCENE ────────────────────────────────────────────────────────
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 200);
+camera.position.set(0, 0, 9);
+
+// ── PROCEDURAL ENVIRONMENT MAP ────────────────────────────────────────────
+// Draw a colourful gradient on a canvas → equirectangular env texture
+// This gives the glass something rich to refract and reflect.
+const envCanvas = Object.assign(document.createElement('canvas'), { width: 1024, height: 512 });
+const ec = envCanvas.getContext('2d');
+
+// Dark gradient base
+const bg = ec.createLinearGradient(0, 0, 0, 512);
+bg.addColorStop(0,   '#04001a');
+bg.addColorStop(0.5, '#010010');
+bg.addColorStop(1,   '#010018');
+ec.fillStyle = bg; ec.fillRect(0, 0, 1024, 512);
+
+// Coloured radial hot-spots — these become the rainbow reflections inside the glass
+[
+  [120,  80, 260, '#6600ff', 0.55],
+  [420, 160, 200, '#ff2266', 0.45],
+  [700, 100, 220, '#00ccff', 0.40],
+  [900, 380, 180, '#ff7700', 0.38],
+  [260, 400, 200, '#00ff88', 0.35],
+  [600, 320, 160, '#cc00ff', 0.40],
+].forEach(([x, y, r, hex, a]) => {
+  const g = ec.createRadialGradient(x, y, 0, x, y, r);
+  const rgb = hex.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16));
+  g.addColorStop(0,   `rgba(${rgb},${a})`);
+  g.addColorStop(1,   'rgba(0,0,0,0)');
+  ec.fillStyle = g; ec.fillRect(0, 0, 1024, 512);
+});
+
+const envTex = new THREE.CanvasTexture(envCanvas);
+envTex.mapping = THREE.EquirectangularReflectionMapping;
+envTex.colorSpace = THREE.SRGBColorSpace;
+
+const pmrem   = new THREE.PMREMGenerator(renderer);
+const envMap  = pmrem.fromEquirectangular(envTex).texture;
+scene.environment = envMap;
+scene.background  = new THREE.Color(0x000000);
+pmrem.dispose();
+envTex.dispose();
+
+// ── GLASS MATERIAL ────────────────────────────────────────────────────────
+// r160 has native iridescence — this is the soap-bubble / glass prism rainbow
+const glassMat = new THREE.MeshPhysicalMaterial({
+  transmission:              0.96,
+  roughness:                 0.02,
+  metalness:                 0.0,
+  ior:                       1.75,
+  thickness:                 1.4,
+  transparent:               true,
+  color:                     new THREE.Color(0xffffff),
+  envMap,
+  envMapIntensity:           2.0,
+  // ↓ iridescence: the rainbow shimmer as viewing angle changes
+  iridescence:               1.0,
+  iridescenceIOR:            1.4,
+  iridescenceThicknessRange: [80, 700],
+  clearcoat:                 1.0,
+  clearcoatRoughness:        0.03,
+  side:                      THREE.DoubleSide,
+});
+
+// ── LIGHTS ────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x0a0820, 2));
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+dirLight.position.set(4, 8, 6);
+scene.add(dirLight);
+
+// Orbiting coloured point lights — add motion and colour to the glass
+const orbDefs = [
+  { r: 4.0, spd:  0.72, y:  1.8, ph: 0.0 },
+  { r: 3.5, spd: -0.55, y: -1.2, ph: 2.2 },
+  { r: 4.8, spd:  0.40, y:  0.3, ph: 4.0 },
+  { r: 3.0, spd: -0.85, y: -0.5, ph: 1.1 },
+  { r: 5.2, spd:  0.30, y:  0.0, ph: 5.5 },
+];
+const orbLights = orbDefs.map(({ r, spd, y, ph }) => {
+  const l = new THREE.PointLight(0xffffff, 5, 18);
+  scene.add(l);
+  return { l, r, spd, y, ph };
+});
+
+// ── WRENCH GROUP ──────────────────────────────────────────────────────────
+const wrenchGroup = new THREE.Group();
+scene.add(wrenchGroup);
+
+// ── LOAD GLB ──────────────────────────────────────────────────────────────
+const loader = new GLTFLoader();
+
+loader.load(
+  './wrench.glb',
+  (gltf) => {
+    loadMsg.style.display = 'none';
+    const model = gltf.scene;
+
+    // Swap all mesh materials to glass
+    model.traverse(child => {
+      if (!child.isMesh) return;
+      child.material = glassMat;
+      child.castShadow = child.receiveShadow = false;
+    });
+
+    // Auto-centre and scale to fill the left panel nicely
+    const box    = new THREE.Box3().setFromObject(model);
+    const centre = box.getCenter(new THREE.Vector3());
+    const size   = box.getSize(new THREE.Vector3());
+    const scale  = 5.2 / Math.max(size.x, size.y, size.z);
+
+    model.position.copy(centre.multiplyScalar(-scale));
+    model.scale.setScalar(scale);
+    model.rotation.z = -Math.PI / 4; // tilt ~45° like the reference image
+
+    wrenchGroup.add(model);
+  },
+  (xhr) => {
+    if (xhr.total) loadMsg.textContent = `Loading ${Math.round(xhr.loaded/xhr.total*100)}%`;
+  },
+  () => {
+    loadMsg.style.display = 'none';
+    const geo  = new THREE.TorusKnotGeometry(1.3, 0.42, 180, 20, 2, 3);
+    const mesh = new THREE.Mesh(geo, glassMat);
+    wrenchGroup.add(mesh);
+  }
+);
+
+// ── RESIZE ────────────────────────────────────────────────────────────────
+function onResize() {
+  const W = panel.offsetWidth;
+  const H = panel.offsetHeight;
+  camera.aspect = W / H;
+  camera.updateProjectionMatrix();
+  renderer.setSize(W, H);
+}
+window.addEventListener('resize', onResize);
+onResize();
+
+// ── ANIMATION LOOP ────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+(function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // Slow, gentle rotation — shows off the iridescence as angle shifts
+  wrenchGroup.rotation.y = t * 0.20;
+  wrenchGroup.rotation.x = Math.sin(t * 0.15) * 0.10;
+
+  // Orbit lights + cycle hue — this pushes different colours into the glass
+  orbLights.forEach(({ l, r, spd, y, ph }, i) => {
+    const a = t * spd + ph;
+    l.position.set(Math.cos(a) * r, y + Math.sin(t * 0.25 + ph) * 0.6, Math.sin(a) * r);
+    l.color.setHSL(((t * 0.07 + i * 0.2) % 1), 1.0, 0.62);
+  });
+
+  renderer.render(scene, camera);
+})();
+</script>
+
+</body>
+</html>
