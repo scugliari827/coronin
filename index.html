@@ -81,8 +81,7 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
     }
   }
   </script>
@@ -253,7 +252,6 @@
   <div class="left">
     <div class="big-word">coronin</div>
     <canvas id="three-canvas"></canvas>
-    <p id="load-msg">Loading...</p>
   </div>
 
   <div class="right">
@@ -288,14 +286,12 @@ document.getElementById('notify-btn').addEventListener('click', () => {
 });
 </script>
 
-<!-- Three.js glass wrench -->
+<!-- Three.js iridescent glass torus knot -->
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-const loadMsg  = document.getElementById('load-msg');
-const canvas   = document.getElementById('three-canvas');
-const panel    = canvas.parentElement;
+const canvas = document.getElementById('three-canvas');
+const panel  = canvas.parentElement;
 
 // ── RENDERER ──────────────────────────────────────────────────────────────
 const renderer = new THREE.WebGLRenderer({
@@ -315,6 +311,8 @@ const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 200);
 camera.position.set(0, 0, 9);
 
 // ── PROCEDURAL ENVIRONMENT MAP ────────────────────────────────────────────
+// Coloured gradient canvas → equirectangular env texture.
+// Gives the glass something rich to refract and reflect.
 const envCanvas = Object.assign(document.createElement('canvas'), { width: 1024, height: 512 });
 const ec = envCanvas.getContext('2d');
 
@@ -350,7 +348,7 @@ scene.background  = new THREE.Color(0x000000);
 pmrem.dispose();
 envTex.dispose();
 
-// ── GLASS MATERIAL ────────────────────────────────────────────────────────
+// ── GLASS MATERIAL (iridescent) ───────────────────────────────────────────
 const glassMat = new THREE.MeshPhysicalMaterial({
   transmission:              0.96,
   roughness:                 0.02,
@@ -376,6 +374,7 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
 dirLight.position.set(4, 8, 6);
 scene.add(dirLight);
 
+// Orbiting coloured point lights — push different colours into the glass
 const orbDefs = [
   { r: 4.0, spd:  0.72, y:  1.8, ph: 0.0 },
   { r: 3.5, spd: -0.55, y: -1.2, ph: 2.2 },
@@ -389,46 +388,13 @@ const orbLights = orbDefs.map(({ r, spd, y, ph }) => {
   return { l, r, spd, y, ph };
 });
 
-// ── WRENCH GROUP ──────────────────────────────────────────────────────────
-const wrenchGroup = new THREE.Group();
-scene.add(wrenchGroup);
+// ── TORUS KNOT ────────────────────────────────────────────────────────────
+const knotGroup = new THREE.Group();
+scene.add(knotGroup);
 
-// ── LOAD GLB ──────────────────────────────────────────────────────────────
-const loader = new GLTFLoader();
-
-loader.load(
-  './wrench.glb',
-  (gltf) => {
-    loadMsg.style.display = 'none';
-    const model = gltf.scene;
-
-    model.traverse(child => {
-      if (!child.isMesh) return;
-      child.material = glassMat;
-      child.castShadow = child.receiveShadow = false;
-    });
-
-    const box    = new THREE.Box3().setFromObject(model);
-    const centre = box.getCenter(new THREE.Vector3());
-    const size   = box.getSize(new THREE.Vector3());
-    const scale  = 5.2 / Math.max(size.x, size.y, size.z);
-
-    model.position.copy(centre.multiplyScalar(-scale));
-    model.scale.setScalar(scale);
-    model.rotation.z = -Math.PI / 4;
-
-    wrenchGroup.add(model);
-  },
-  (xhr) => {
-    if (xhr.total) loadMsg.textContent = `Loading ${Math.round(xhr.loaded/xhr.total*100)}%`;
-  },
-  () => {
-    loadMsg.style.display = 'none';
-    const geo  = new THREE.TorusKnotGeometry(1.3, 0.42, 180, 20, 2, 3);
-    const mesh = new THREE.Mesh(geo, glassMat);
-    wrenchGroup.add(mesh);
-  }
-);
+const geo  = new THREE.TorusKnotGeometry(1.3, 0.42, 180, 20, 2, 3);
+const mesh = new THREE.Mesh(geo, glassMat);
+knotGroup.add(mesh);
 
 // ── RESIZE ────────────────────────────────────────────────────────────────
 function onResize() {
@@ -448,9 +414,11 @@ const clock = new THREE.Clock();
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
-  wrenchGroup.rotation.y = t * 0.20;
-  wrenchGroup.rotation.x = Math.sin(t * 0.15) * 0.10;
+  // Slow, gentle rotation — shows off the iridescence as angle shifts
+  knotGroup.rotation.y = t * 0.20;
+  knotGroup.rotation.x = Math.sin(t * 0.15) * 0.10;
 
+  // Orbit lights cycle hue — pushes different colours into the glass
   orbLights.forEach(({ l, r, spd, y, ph }, i) => {
     const a = t * spd + ph;
     l.position.set(Math.cos(a) * r, y + Math.sin(t * 0.25 + ph) * 0.6, Math.sin(a) * r);
