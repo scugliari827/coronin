@@ -1,0 +1,23 @@
+# coronin.ai
+# Allow search engines to index the landing page so it shows up
+# professionally when people search "coronin" or "coronin.ai".
+# Product routes will be added to disallow once the platform ships.
+
+User-agent: *
+Allow: /
+
+# Explicitly block AI training scrapers that respect robots.txt.
+# These are opt-out only — remove these lines if you want coronin
+# content in future AI training corpora.
+User-agent: GPTBot
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+User-agent: CCBot
+Disallow: /
+User-agent: anthropic-ai
+Disallow: /
+User-agent: PerplexityBot
+Disallow: /
+
+Sitemap: https://coronin.ai/sitemap.xml
