@@ -71,6 +71,19 @@
   </script>
 
   <!-- ─────────────────────────────────────────────────────────── -->
+  <!-- GOOGLE ANALYTICS 4 — coronin.ai production stream            -->
+  <!-- ─────────────────────────────────────────────────────────── -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ZVZG7T57V"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5ZVZG7T57V', {
+      anonymize_ip: true
+    });
+  </script>
+
+  <!-- ─────────────────────────────────────────────────────────── -->
   <!-- FONTS                                                        -->
   <!-- ─────────────────────────────────────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -193,6 +206,31 @@
     }
     .contact:hover { color: #fff; }
 
+    /* ── FORM STATES & HELPERS ─────────────────────────────────── */
+    .honeypot {
+      position: absolute; left: -10000px; top: auto;
+      width: 1px; height: 1px; overflow: hidden; opacity: 0;
+    }
+    .privacy-note {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 11px; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.3);
+      margin-top: 14px;
+    }
+    .form-error {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 12px; letter-spacing: 0.06em;
+      color: #ff8080;
+      margin-top: 10px;
+    }
+    .form-error:empty { margin-top: 0; }
+    .notify-btn:disabled {
+      opacity: 0.6; cursor: wait;
+    }
+    .notify-btn:disabled:hover {
+      background: #fff; color: #000;
+    }
+
     /* ── TABLET ≥ 640px ────────────────────────────────────────── */
     @media (min-width: 640px) {
       .left { height: 50vh; min-height: 380px; }
@@ -259,31 +297,81 @@
     <h1 class="slogan">Physical AI<br/>for skilled trades</h1>
     <p class="hook">The first platform built for the people who fix the world.</p>
     <p class="launch-note">Launching soon — be among the first to know.</p>
-    <div class="form-block" id="form-block">
+    <form class="form-block" id="form-block" novalidate>
       <p class="field-label">Your email</p>
       <div class="input-row">
-        <input class="email-input" id="email-input" type="email" placeholder="name@company.com"/>
-        <button class="notify-btn" type="button" id="notify-btn">Notify Me</button>
+        <input class="email-input" id="email-input" type="email" name="email" placeholder="name@company.com" required autocomplete="email"/>
+        <button class="notify-btn" type="submit" id="notify-btn">Notify Me</button>
       </div>
-    </div>
+      <!-- Honeypot: hidden from humans, bots fill every field -->
+      <input type="text" name="website" id="hp-website" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot"/>
+      <p class="privacy-note">One email at launch.</p>
+      <p class="form-error" id="form-error" aria-live="polite" role="status"></p>
+    </form>
     <a class="contact" href="mailto:hello@coronin.ai">hello@coronin.ai</a>
   </div>
 </div>
 
-<!-- Form handler (no module needed) -->
+<!-- Form handler: validation, loading state, error state, honeypot -->
 <script>
-document.getElementById('notify-btn').addEventListener('click', () => {
-  const email = document.getElementById('email-input').value;
-  if (!email || !email.includes('@')) return;
-  fetch('https://formspree.io/f/YOUR_FORM_ID', {
-    method: 'POST',
-    body: JSON.stringify({ email }),
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-  }).then(r => {
-    if (r.ok) document.getElementById('form-block').innerHTML =
-      '<p style="font-family:DM Mono,monospace;font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:0.08em;">✓ You\'re on the list.</p>';
-  }).catch(() => {});
-});
+(function () {
+  const form       = document.getElementById('form-block');
+  const emailInput = document.getElementById('email-input');
+  const btn        = document.getElementById('notify-btn');
+  const hp         = document.getElementById('hp-website');
+  const errorEl    = document.getElementById('form-error');
+  const btnText    = btn.textContent;
+
+  const showError = (msg) => { errorEl.textContent = msg; };
+  const clearError = () => { errorEl.textContent = ''; };
+  const setLoading = (on) => {
+    btn.disabled = on;
+    btn.textContent = on ? 'Sending…' : btnText;
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearError();
+
+    // Honeypot trip — silently succeed-fail for bots
+    if (hp.value) return;
+
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Kit expects form-urlencoded POST with 'email_address' field
+      const body = new URLSearchParams();
+      body.append('email_address', email);
+
+      const response = await fetch('https://app.kit.com/forms/9339658/subscriptions', {
+        method: 'POST',
+        body: body,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.ok) throw new Error('submit_failed');
+
+      // Fire GA4 conversion event (guarded in case gtag is blocked)
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'email_signup', {
+          method: 'waitlist_form'
+        });
+      }
+
+      // Inline success swap — preserves the no-reload UX
+      form.innerHTML = '<p style="font-family:DM Mono,monospace;font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:0.08em;">✓ You\'re on the list.</p>';
+    } catch (err) {
+      setLoading(false);
+      showError('Something went wrong. Try again, or email hello@coronin.ai');
+    }
+  });
+})();
 </script>
 
 <!-- Three.js iridescent glass torus knot -->
