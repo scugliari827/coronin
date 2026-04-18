@@ -136,12 +136,14 @@
       position: absolute; inset: 0;
       width: 100%; height: 100%; display: block;
     }
-    #load-msg {
-      position: absolute; bottom: 50%; left: 50%;
-      transform: translate(-50%, 50%);
-      font-family: 'DM Mono', monospace; font-size: 10px;
-      letter-spacing: 0.16em; text-transform: uppercase;
-      color: rgba(255,255,255,0.18); pointer-events: none; z-index: 3;
+    /* WebGL failure fallback: subtle radial gradient under the word */
+    .left.no-webgl {
+      background: radial-gradient(ellipse at 55% 55%, #2a1045 0%, #050212 75%);
+    }
+    /* noscript fallback: same gradient, shown when JS is off */
+    .left noscript .ns-fallback {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 55% 55%, #2a1045 0%, #050212 75%);
     }
 
     /* ── RIGHT / CONTENT PANEL ─────────────────────────────────── */
@@ -231,6 +233,33 @@
       background: #fff; color: #000;
     }
 
+    /* Small, muted site meta — sits directly under the contact, no layout shift */
+    .site-meta {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 11px; letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.22);
+      margin-top: 12px;
+    }
+    .site-meta a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .site-meta a:hover { color: rgba(255,255,255,0.55); }
+    .site-meta .sep {
+      margin: 0 8px;
+      opacity: 0.6;
+    }
+
+    /* ── REDUCED MOTION ────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
     /* ── TABLET ≥ 640px ────────────────────────────────────────── */
     @media (min-width: 640px) {
       .left { height: 50vh; min-height: 380px; }
@@ -286,14 +315,15 @@
 
 <body>
 
-<div class="layout">
+<main class="layout">
   <div class="left">
     <div class="big-word">coronin</div>
     <canvas id="three-canvas"></canvas>
+    <noscript><div class="ns-fallback"></div></noscript>
   </div>
 
   <div class="right">
-    <a class="logo" href="/">coronin</a>
+    <a class="logo" href="/" aria-label="coronin home">coronin</a>
     <h1 class="slogan">Physical AI<br/>for skilled trades</h1>
     <p class="hook">The first platform built for the people who fix the world.</p>
     <p class="launch-note">Launching soon — be among the first to know.</p>
@@ -309,8 +339,9 @@
       <p class="form-error" id="form-error" aria-live="polite" role="status"></p>
     </form>
     <a class="contact" href="mailto:hello@coronin.ai">hello@coronin.ai</a>
+    <p class="site-meta">© 2026 coronin<span class="sep">·</span><a href="/privacy">Privacy</a></p>
   </div>
-</div>
+</main>
 
 <!-- Form handler: validation, loading state, error state, honeypot -->
 <script>
@@ -381,13 +412,24 @@ import * as THREE from 'three';
 const canvas = document.getElementById('three-canvas');
 const panel  = canvas.parentElement;
 
-// ── RENDERER ──────────────────────────────────────────────────────────────
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  antialias: true,
-  alpha: true,
-  powerPreference: 'high-performance',
-});
+// Reduced motion: respect OS-level preference. Render a single frame, no animation loop.
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// WebGL fallback: if anything in setup throws, hide the canvas and let the CSS gradient show.
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: true,
+    powerPreference: 'high-performance',
+    failIfMajorPerformanceCaveat: false,
+  });
+} catch (err) {
+  canvas.style.display = 'none';
+  panel.classList.add('no-webgl');
+  throw err;
+}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.toneMapping         = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.6;
@@ -497,11 +539,9 @@ onResize();
 
 // ── ANIMATION LOOP ────────────────────────────────────────────────────────
 const clock = new THREE.Clock();
+let rafId = null;
 
-(function animate() {
-  requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
-
+function renderFrame(t) {
   // Slow, gentle rotation — shows off the iridescence as angle shifts
   knotGroup.rotation.y = t * 0.20;
   knotGroup.rotation.x = Math.sin(t * 0.15) * 0.10;
@@ -514,7 +554,30 @@ const clock = new THREE.Clock();
   });
 
   renderer.render(scene, camera);
-})();
+}
+
+function animate() {
+  rafId = requestAnimationFrame(animate);
+  renderFrame(clock.getElapsedTime());
+}
+
+if (reducedMotion) {
+  // Static frame only — respect user's motion preference
+  renderFrame(2.0);
+} else {
+  animate();
+
+  // Pause when tab is backgrounded — saves CPU and mobile battery
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+      clock.stop();
+    } else if (rafId === null) {
+      clock.start();
+      animate();
+    }
+  });
+}
 </script>
 
 </body>
