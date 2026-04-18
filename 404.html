@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>404 — coronin</title>
+  <meta name="description" content="Page not found."/>
+  <meta name="robots" content="noindex,follow"/>
+
+  <meta name="theme-color" content="#000000"/>
+  <meta name="color-scheme" content="dark"/>
+  <meta name="msapplication-TileColor" content="#000000"/>
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000"/>
+
+  <!-- GA4 — tracks which URLs hit 404 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ZVZG7T57V"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5ZVZG7T57V', {
+      anonymize_ip: true
+    });
+    gtag('event', 'page_not_found', {
+      bad_url: window.location.pathname + window.location.search
+    });
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #000; color: #fff;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    body { overflow-x: hidden; }
+
+    .page {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      padding: 32px 24px;
+      position: relative;
+    }
+
+    /* ── TOP BAR ──────────────────────────────────────────── */
+    .top {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-family: 'Outfit', sans-serif; font-weight: 600;
+      font-size: 18px; letter-spacing: -0.5px;
+      color: #fff; text-decoration: none;
+      opacity: 0.9; transition: opacity 0.2s;
+    }
+    .logo:hover { opacity: 1; }
+    .top-meta {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.38);
+    }
+
+    /* ── HERO ────────────────────────────────────────────── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+      align-items: end;
+      padding: 64px 0 32px;
+      position: relative;
+      margin-top: auto;
+    }
+
+    /* Thin divider line above the headline */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .headline-col {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .arrow {
+      font-family: 'Outfit', sans-serif; font-weight: 300;
+      font-size: 28px; line-height: 1;
+      color: rgba(255,255,255,0.55);
+      transform: rotate(-45deg);
+      display: inline-block;
+      width: 28px;
+      margin-bottom: 4px;
+    }
+    .headline {
+      font-family: 'Outfit', sans-serif; font-weight: 700;
+      font-size: clamp(56px, 11vw, 160px);
+      letter-spacing: -0.04em; line-height: 0.95;
+      color: #fff;
+    }
+    .sub {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-top: 4px;
+      display: inline-flex; align-items: center; gap: 10px;
+      width: fit-content;
+    }
+    .sub-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 0 6px rgba(255,255,255,0.25);
+      flex-shrink: 0;
+    }
+
+    .meta-col {
+      display: flex; flex-direction: column;
+      align-items: flex-start;
+    }
+    .back-btn {
+      background: #fff; color: #000; border: 1px solid #fff;
+      padding: 14px 26px;
+      font-family: 'Outfit', sans-serif; font-weight: 700;
+      font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 10px;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .back-btn:hover { background: transparent; color: #fff; }
+    .back-btn .chev {
+      font-family: 'Outfit', sans-serif; font-weight: 300;
+      font-size: 16px; line-height: 1;
+      transition: transform 0.2s;
+    }
+    .back-btn:hover .chev { transform: translateX(3px); }
+
+    /* ── BOTTOM META ─────────────────────────────────────── */
+    .bottom {
+      padding-top: 48px;
+      display: flex; justify-content: flex-end;
+    }
+    .site-meta {
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      font-size: 11px; letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.22);
+    }
+    .site-meta a {
+      color: inherit; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .site-meta a:hover { color: rgba(255,255,255,0.55); }
+    .site-meta .sep { margin: 0 8px; opacity: 0.6; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ── TABLET+ ─────────────────────────────────────────── */
+    @media (min-width: 768px) {
+      .page { padding: 40px 48px; }
+      .logo { font-size: 20px; }
+      .hero {
+        grid-template-columns: 1fr auto;
+        gap: 48px;
+        padding: 96px 0 48px;
+      }
+      .meta-col {
+        align-items: flex-end;
+      }
+    }
+
+    /* ── DESKTOP ─────────────────────────────────────────── */
+    @media (min-width: 1200px) {
+      .page { padding: 48px 64px; }
+      .headline { font-size: clamp(96px, 12vw, 180px); }
+      .hero { padding: 120px 0 64px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="page">
+  <div class="top">
+    <a class="logo" href="/" aria-label="coronin home">coronin</a>
+    <span class="top-meta">coronin.ai</span>
+  </div>
+
+  <section class="hero">
+    <div class="headline-col">
+      <span class="arrow" aria-hidden="true">↗</span>
+      <h1 class="headline">page not found.</h1>
+      <p class="sub"><span class="sub-dot" aria-hidden="true"></span>error · 404</p>
+    </div>
+
+    <div class="meta-col">
+      <a class="back-btn" href="/">
+        <span>Back to home</span>
+        <span class="chev" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <div class="bottom">
+    <p class="site-meta">© 2026 coronin<span class="sep">·</span><a href="/privacy">Privacy</a></p>
+  </div>
+</main>
+
+</body>
+</html>
